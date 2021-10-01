@@ -38,7 +38,7 @@ function saveRecord(record) {
 
 function syncDatabase() {
   //open a transaction on the pending_transaction db
-  const transaction = db.transaction(["pending_transaction"], readwrite);
+  const transaction = db.transaction(["pending_transaction"], "readwrite");
   //access your object store
   const budgetObjStore = transaction.objectStore("pending_transaction");
   //create a reference to all store transactions
