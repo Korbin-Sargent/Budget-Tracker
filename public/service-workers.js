@@ -45,13 +45,14 @@ self.addEventListener("activate", function (e) {
 
 //fetch data and store in cache
 self.addEventListener("fetch", function (e) {
+  //successful request to API will be cached
   if (e.request.url.includes("/api/")) {
     e.respondWith(
       caches
         .open(DATA_CACHE_NAME)
         .then((cache) => {
           return fetch(e.request)
-            .then((resonse) => {
+            .then((response) => {
               if (response.status === 200) {
                 cache.put(e.request.url, response.clone());
               }
@@ -65,4 +66,19 @@ self.addEventListener("fetch", function (e) {
     );
     return;
   }
+  //server static assets if the request if not for the API
+  e.respondWith(
+    caches.match(e.request).then((response) => {
+      return response || fetch(e.request);
+    })
+
+    // fetch(e.request).catch(function () {
+    //   return caches.match(e.request).then((response) => {
+    //     if (response) {
+    //       return response;
+    //     } else if (e.request.headers.get("accept").includes("text/html")) {
+    //       return caches.match("/");
+    //     }
+    //   });
+  );
 });
