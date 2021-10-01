@@ -1,6 +1,7 @@
+//variable "db" will hold a reference to our database connection
 let db;
 
-//open a new databse titled "budget"
+//ocreate a connection to IndexedDB databse titled "budget"
 const request = indexedDB.open("budget", 1);
 
 request.onupgradneeded = function (event) {
@@ -14,7 +15,7 @@ request.onsuccess = function (event) {
   db = event.taget.result;
   //varify app is online prior to interacting with db
   if (navigator.onLine) {
-    checkDatabase();
+    syncDatabase();
   }
 };
 
@@ -34,3 +35,42 @@ function saveRecord(record) {
   //adds record to store
   budgetObjStore.add(record);
 }
+
+function syncDatabase() {
+  //open a transaction on the pending_transaction db
+  const transaction = db.transaction(["pending_transaction"], readwrite);
+  //access your object store
+  const budgetObjStore = transaction.objectStore("pending_transaction");
+  //create a reference to all store transactions
+  const getAll = budgetObjStore.getAll();
+
+  getAll.onsuccess = function () {
+    if (getAll.result.length > 0) {
+      fetch("/api/transaction", {
+        method: "POST",
+        body: JSON.stringify(getAll.result),
+        headers: {
+          Accept: "application/json, text/plain, */*",
+          "Content-Type": "application/json",
+        },
+      })
+        .then((response) => response.json())
+        .then(() => {
+          const transaction = db.transaction(
+            ["pending_transaction"],
+            "readwrite"
+          );
+          //access "pending_transaction" object store
+          const budgetObjStore = transaction.objectStore("pending_transaction");
+          //clear all items in the store
+          budgetObjStore.clear();
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  };
+}
+
+//Listen for when the application comes online, call syncDatabase
+window.addEventListener("online", syncDatabase);
