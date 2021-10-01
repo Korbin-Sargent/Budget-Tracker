@@ -1,3 +1,5 @@
+const { response } = require("express");
+
 const CACHE_NAME = "static-cache-v2";
 const DATA_CACHE_NAME = "data-cache-v1";
 
@@ -39,4 +41,27 @@ self.addEventListener("activate", function (e) {
     })
   );
   self.clients.claim();
+});
+
+//fetch data and store in cache
+self.addEventListener("fetch", function (e) {
+  if (e.request.url.includes("/api/")) {
+    e.respondWith(
+      caches
+        .open(DATA_CACHE_NAME)
+        .then((cache) => {
+          return fetch(e.request)
+            .then((resonse) => {
+              if (response.status === 200) {
+                cache.put(e.request.url, response.clone());
+              }
+              return response;
+            })
+            .catch((err) => {
+              return cache.match(e.request);
+            });
+        })
+        .catch((err) => console.log(err))
+    );
+  }
 });
