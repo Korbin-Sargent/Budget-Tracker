@@ -3,6 +3,7 @@ const DATA_CACHE_NAME = "data-cache-v1";
 
 const FILES_TO_CACHE = [
   "/",
+  "index.html",
   "/db.js",
   "/index.js",
   "/manifest.webmanifest",
@@ -15,7 +16,7 @@ const FILES_TO_CACHE = [
 self.addEventListener("install", function (e) {
   e.waitUntil(
     //start a cache
-    caches.open(CACHE_NAME).then(function (cache) {
+    caches.open(CACHE_NAME).then((cache) => {
       console.log("installing cache : " + CACHE_NAME);
       //cache all files
       return cache.addAll(FILES_TO_CACHE);

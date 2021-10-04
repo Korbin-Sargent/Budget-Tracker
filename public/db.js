@@ -1,21 +1,28 @@
+// const indexedDB =
+//   window.indexedDB ||
+//   window.mozIndexedDB ||
+//   window.webkitIndexedDB ||
+//   window.msIndexedDB ||
+//   window.shimIndexedDB;
+
 //variable "db" will hold a reference to our database connection
 let db;
 
-//ocreate a connection to IndexedDB databse titled "budget"
+//create a connection to IndexedDB databse titled "budget"
 const request = indexedDB.open("budget", 1);
 
-request.onupgradneeded = function (event) {
+request.onupgradeneeded = function (event) {
   //store reference to our db
   const db = event.target.result;
   //create object store titled "pending_transaction". set autoincrement to true
-  db.createObjectStore("pending_transaction", { autoIncrement: true });
+  db.createObjectStore(["pending_transaction"], { autoIncrement: true });
 };
 
 request.onsuccess = function (event) {
-  db = event.taget.result;
+  db = event.target.result;
   //varify app is online prior to interacting with db
   if (navigator.onLine) {
-    syncDatabase();
+    checkDatabase();
   }
 };
 
@@ -36,7 +43,7 @@ function saveRecord(record) {
   budgetObjStore.add(record);
 }
 
-function syncDatabase() {
+function checkDatabase() {
   //open a transaction on the pending_transaction db
   const transaction = db.transaction(["pending_transaction"], "readwrite");
   //access your object store
@@ -46,7 +53,7 @@ function syncDatabase() {
 
   getAll.onsuccess = function () {
     if (getAll.result.length > 0) {
-      fetch("/api/transaction", {
+      fetch("/api/transaction/bulk", {
         method: "POST",
         body: JSON.stringify(getAll.result),
         headers: {
@@ -71,6 +78,10 @@ function syncDatabase() {
     }
   };
 }
-
-//Listen for when the application comes online, call syncDatabase
-window.addEventListener("online", syncDatabase);
+function deletePending() {
+  const transaction = db.transaction(["pending_transaction"], "readwrite");
+  const store = transaction.objectStore("pending_transaction");
+  store.clear();
+}
+//Listen for when the application comes online, call checkDatabase
+window.addEventListener("online", checkDatabase);

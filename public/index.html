@@ -20,6 +20,15 @@
 
     <title>Budget Tracker</title>
   </head>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("service-worker.js").then((reg) => {
+          console.log("We found your service worker file!", reg);
+        });
+      });
+    }
+  </script>
   <body>
     <div class="wrapper">
       <div class="total">
@@ -55,6 +64,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+    <script src="db.js"></script>
     <script src="index.js"></script>
   </body>
 </html>
